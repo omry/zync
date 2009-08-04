@@ -62,8 +62,6 @@ public class Zync
 				rs.copyDirs(dirs);
 				
 				rs.execute();
-				
-				
 			}
 		}
 		else
