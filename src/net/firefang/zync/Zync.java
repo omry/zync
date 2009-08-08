@@ -107,13 +107,7 @@ public class Zync
 		c.add("snapshot");
 		c.add(zfsfs + "@" + timestamp);
 		
-		if (verbose)
-		{
-			System.out.println(toString(c));
-		}
-
-		
-		runProcess(c, System.out);
+		runProcess(c, System.out, verbose);
         
         String deleteOlder = conf.selectProperty("zync.zfs.delete_older");
         if (deleteOlder != null)
@@ -146,13 +140,13 @@ public class Zync
         		System.out.println("Deleting snapshots " + msg);
         	}
         	
-        	Map<String, Long> creation = getCreationTimes(zfs, zfsfs);
+        	Map<String, Long> creation = getCreationTimes(zfs, zfsfs, verbose);
         	
         }
 	}
 	
 	
-	private static Map<String, Long> getCreationTimes(String zfs, String zfsfs) throws IOException, InterruptedException
+	private static Map<String, Long> getCreationTimes(String zfs, String zfsfs, boolean verbose) throws IOException, InterruptedException
 	{
 		//zfs list -o name,creation  -rHt snapshot storage/backup
 		
@@ -167,7 +161,7 @@ public class Zync
 		
 		
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		runProcess(c, bout);
+		runProcess(c, bout, verbose);
         
 		BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bout.toByteArray())));
         String line;
@@ -196,8 +190,13 @@ public class Zync
 	}
 	
 	
-	public static void runProcess(List<String> commands, OutputStream out) throws InterruptedException, IOException
+	public static void runProcess(List<String> commands, OutputStream out, boolean verbose) throws InterruptedException, IOException
 	{
+		if (verbose)
+		{
+			System.out.println(toString(commands));
+		}
+
 		ProcessBuilder pb = new ProcessBuilder(commands);
 		
         Process process = pb.start();
