@@ -13,6 +13,8 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -140,13 +142,22 @@ public class Zync
         		System.out.println("Deleting snapshots " + msg);
         	}
         	
-        	Map<String, Long> creation = getCreationTimes(zfs, zfsfs, verbose);
+        	Map<Long, String> creation = getCreationTimes(zfs, zfsfs, verbose);
+        	List<Long> times = new ArrayList<Long>(creation.keySet());
+        	Collections.sort(times);
+        	for(long l : times)
+        	{
+        		if (l < olderThen)
+        		{
+        			System.out.println("Deleting " + creation.get(l));
+        		}
+        	}
         	
         }
 	}
 	
 	
-	private static Map<String, Long> getCreationTimes(String zfs, String zfsfs, boolean verbose) throws IOException, InterruptedException, ParseException
+	private static Map<Long, String> getCreationTimes(String zfs, String zfsfs, boolean verbose) throws IOException, InterruptedException, ParseException
 	{
 		//zfs list -o name,creation  -rHt snapshot storage/backup
 		
@@ -165,27 +176,20 @@ public class Zync
         
 		BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bout.toByteArray())));
         String line;
-        // yyyy_MM_dd__kk_mm_ss_zzz
+        // Sat Aug  8 13:52 2009
         SimpleDateFormat df = new SimpleDateFormat("EEE MMM dd kk:mm yyyy");
         
-        Map<String, Long> m = new HashMap<String, Long>(); 
+        Map<Long,String> m = new HashMap<Long, String>();
         while ((line = br.readLine()) != null)
         {
         	int i = line.indexOf('\t');
         	String name = line.substring(0, i);
         	String date = line.substring(i + 1);
-        	System.err.println(name  + " || " + date);
         	Date d = df.parse(date);
-        	
-        	
-        	DateFormat df1 = new SimpleDateFormat("yyyy_MM_dd__kk_mm_ss_zzz");
-        	System.err.println(name +  " : " + df1.format(d));
-        	
-        	m.put(name, d.getTime());
-        	// Sat Aug  8 13:52 2009
+        	m.put(d.getTime(), name);
         }
         
-		return null;
+		return m;
 	}
 
 	static String toString(List<String> commands)
