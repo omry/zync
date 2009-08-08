@@ -178,7 +178,7 @@ public class Zync
 		
 		
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		runProcess(c, bout, verbose);
+		runProcess(c, bout, false);
         
 		BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bout.toByteArray())));
         String line;
