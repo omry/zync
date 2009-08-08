@@ -10,9 +10,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -93,7 +95,7 @@ public class Zync
 		}
 	}
 
-	private static void snapshot(boolean verbose, Swush conf) throws IOException, InterruptedException
+	private static void snapshot(boolean verbose, Swush conf) throws IOException, InterruptedException, ParseException
 	{
 		String zfs = conf.selectProperty("zync.zfs.zfs", "/usr/sbin/zfs");
 		String zfsfs = conf.selectProperty("zync.zfs.backup_file_system");
@@ -144,7 +146,7 @@ public class Zync
 	}
 	
 	
-	private static Map<String, Long> getCreationTimes(String zfs, String zfsfs, boolean verbose) throws IOException, InterruptedException
+	private static Map<String, Long> getCreationTimes(String zfs, String zfsfs, boolean verbose) throws IOException, InterruptedException, ParseException
 	{
 		//zfs list -o name,creation  -rHt snapshot storage/backup
 		
@@ -163,10 +165,23 @@ public class Zync
         
 		BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bout.toByteArray())));
         String line;
+        // yyyy_MM_dd__kk_mm_ss_zzz
+        SimpleDateFormat df = new SimpleDateFormat("EEE MMM dd kk:mm yyyy");
         
+        Map<String, Long> m = new HashMap<String, Long>(); 
         while ((line = br.readLine()) != null)
         {
-        	System.out.println(line);
+        	int i = line.indexOf(' ');
+        	String name = line.substring(0, i);
+        	String date = line.substring(i + 1);
+        	Date d = df.parse(date);
+        	
+        	
+        	DateFormat df1 = new SimpleDateFormat("yyyy_MM_dd__kk_mm_ss_zzz");
+        	System.err.println(name +  " : " + df.format(d));
+        	
+        	m.put(name, d.getTime());
+        	// Sat Aug  8 13:52 2009
         }
         
 		return null;
