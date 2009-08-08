@@ -143,6 +143,7 @@ public class Zync
         	}
         	
         	Map<Long, String> creation = getCreationTimes(zfs, zfsfs, verbose);
+        	System.out.println(creation);
         	List<Long> times = new ArrayList<Long>(creation.keySet());
         	Collections.sort(times);
         	for(long l : times)
@@ -187,6 +188,7 @@ public class Zync
         	String date = line.substring(i + 1);
         	Date d = df.parse(date);
         	m.put(d.getTime(), name);
+        	System.out.println(name + " : " + d);
         }
         
 		return m;
