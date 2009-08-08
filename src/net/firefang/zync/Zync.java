@@ -117,7 +117,7 @@ public class Zync
         	long olderThen = 0;
         	
         	char u = deleteOlder.charAt(deleteOlder.length() - 1);
-        	float f = Float.parseFloat(deleteOlder.substring(0, deleteOlder.length() - 2));
+        	float f = Float.parseFloat(deleteOlder.substring(0, deleteOlder.length() - 1));
         	String msg;
         	switch(u)
         	{
