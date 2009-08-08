@@ -174,6 +174,7 @@ public class Zync
         	int i = line.indexOf(' ');
         	String name = line.substring(0, i);
         	String date = line.substring(i + 1);
+        	System.err.println(name  + " || " + date);
         	Date d = df.parse(date);
         	
         	
