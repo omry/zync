@@ -74,7 +74,14 @@ public class Zync
 				List<String> excludes = new ArrayList<String>();
 				for(Swush exclude : backup.select("backup.exclude"))
 				{
-					excludes.add(exclude.getTextValue());
+					if (exclude.isPair())
+						excludes.add(exclude.getTextValue());
+					else
+					{
+						String[] ar = exclude.asArray();
+						for(String s : ar) 
+							excludes.add(s);
+					}
 				}
 				
 				rs.setExcludes(excludes);
