@@ -99,7 +99,7 @@ public class Zync
 	{
 		String zfs = conf.selectProperty("zync.zfs.zfs", "/usr/sbin/zfs");
 		String zfsfs = conf.selectProperty("zync.zfs.backup_file_system");
-		DateFormat df = new SimpleDateFormat(conf.selectProperty("zync.zfs.snapshot_name_pattern", "yyyy_MM_dd__kk_mm_ss_zzz"));
+		DateFormat df = new SimpleDateFormat(conf.selectProperty("zync.zfs.snapshot.name_pattern", "yyyy_MM_dd__kk_mm_ss_zzz"));
 		String timestamp = df.format(new Date());
 		
 		List<String> c = new ArrayList<String>();
@@ -109,7 +109,7 @@ public class Zync
 		
 		runProcess(c, System.out, verbose);
         
-        String deleteOlder = conf.selectProperty("zync.zfs.delete_older");
+        String deleteOlder = conf.selectProperty("zync.zfs.snapshot.delete_older");
         if (deleteOlder != null)
         {
         	long olderThen = 0;
