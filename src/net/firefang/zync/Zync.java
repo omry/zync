@@ -137,13 +137,15 @@ public class Zync
         		throw new RuntimeException("Unsupported unit type " + u + ", supported units are m : minute | h : hour | d : day");
         	}
         	
+        	olderThen = System.currentTimeMillis() - olderThen;
+        	
         	if (verbose)
         	{
         		System.out.println("Deleting snapshots " + msg);
         	}
         	
+        	
         	Map<Long, String> creation = getCreationTimes(zfs, zfsfs, verbose);
-        	System.out.println(creation);
         	List<Long> times = new ArrayList<Long>(creation.keySet());
         	Collections.sort(times);
         	for(long l : times)
