@@ -179,7 +179,7 @@ public class Zync
         	
         	
         	DateFormat df1 = new SimpleDateFormat("yyyy_MM_dd__kk_mm_ss_zzz");
-        	System.err.println(name +  " : " + df.format(d));
+        	System.err.println(name +  " : " + df1.format(d));
         	
         	m.put(name, d.getTime());
         	// Sat Aug  8 13:52 2009
