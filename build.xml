@@ -15,7 +15,6 @@
          ================================= -->
 	<target name="dist" depends="setup,clean,build" description="description">
 		<copydir dest="${build.dir}/dist/src" src="src"></copydir>
-		<copydir dest="${build.dir}/dist/test-data" src="test-data"></copydir>
 		<copy file="build.xml" todir="${build.dir}/dist"/>
 		<copy file="CHANGELOG" todir="${build.dir}/dist"/>
 		<copy file="LICENSE" todir="${build.dir}/dist"/>
