@@ -1,15 +1,20 @@
 package net.firefang.zync;
 
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import net.firefang.swush.Swush;
 /**
@@ -32,6 +37,12 @@ public class Zync
 		
 		Swush conf = new Swush(file);
 		
+		
+		snapshot(verbose, conf);
+		if (true)
+		{
+			return;
+		}
 		
 		String rsync = conf.selectProperty("zync.rsync");
 		String options[] = conf.selectFirst("zync.options").asArray();
@@ -77,8 +88,6 @@ public class Zync
 				
 				rs.execute();
 			}
-			
-			snapshot(verbose, conf);
 		}
 		else
 		{
@@ -117,9 +126,72 @@ public class Zync
         if (exit != 0)
         	System.exit(exit);
 		
+        
+        String deleteOlder = conf.selectProperty("zync.zfs.delete_older");
+        if (deleteOlder != null)
+        {
+        	long olderThen = 0;
+        	
+        	char u = deleteOlder.charAt(deleteOlder.length());
+        	float f = Float.parseFloat(deleteOlder.substring(0, deleteOlder.length() - 1));
+        	String msg;
+        	switch(u)
+        	{
+        	case 'm':
+        		olderThen = (long)(f * 1000 * 60);
+        		msg = "older than " + f + " minutes";
+        		break;
+        	case 'h':
+        		olderThen = (long)(f * 1000 * 60 * 60);
+        		msg = "older than " + f + " hours";
+        		break;
+        	case 'd':
+        		olderThen = (long)(f * 1000 * 60 * 60 * 24);
+        		msg = "older than " + f + " days";
+        		break;
+        	default:
+        		throw new RuntimeException("Unsupported unit type " + u + ", supported units are m : minute | h : hour | d : day");
+        	}
+        	
+        	if (verbose)
+        	{
+        		System.out.println("Deleting snapshots " + msg);
+        	}
+        	
+        	Map<String, Long> creation = getCreationTimes(zfs, zfsfs);
+        	
+        }
 	}
 	
 	
+	private static Map<String, Long> getCreationTimes(String zfs, String zfsfs) throws IOException, InterruptedException
+	{
+		//zfs list -o name,creation  -rHt snapshot storage/backup
+		
+		List<String> c = new ArrayList<String>();
+		c.add(zfs);
+		c.add("list");
+		c.add("-o");
+		c.add("name,creation");
+		c.add("-rHt");
+		c.add("snapshot");
+		c.add(zfsfs);
+		
+		
+		ByteArrayOutputStream bout = new ByteArrayOutputStream();
+		runProcess(c, bout);
+        
+		BufferedReader br = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(bout.toByteArray())));
+        String line;
+        
+        while ((line = br.readLine()) != null)
+        {
+        	System.out.println(line);
+        }
+        
+		return null;
+	}
+
 	static String toString(List<String> commands)
 	{
 		String cmd = "";
@@ -135,6 +207,26 @@ public class Zync
 		return cmd;
 	}
 	
+	
+	public static void runProcess(List<String> commands, OutputStream out) throws InterruptedException, IOException
+	{
+		ProcessBuilder pb = new ProcessBuilder(commands);
+		
+        Process process = pb.start();
+        InputStreamSucker stdout = new InputStreamSucker(process.getInputStream(), out);
+        InputStreamSucker stderr = new InputStreamSucker(process.getErrorStream(), System.err);
+
+        process.waitFor();
+        stdout.join();
+        stderr.join();
+        
+        int exit = process.exitValue();
+        if (exit != 0)
+        {
+        	System.err.println("Exit code " + exit + " from : " + toString(commands));
+        	System.exit(exit);
+        }
+	}
 }
 
 
@@ -243,9 +335,9 @@ class Rsync
 class InputStreamSucker extends Thread
 {
 	private final InputStream m_in;
-	private final PrintStream m_out;
+	private final OutputStream m_out;
 
-	public InputStreamSucker(InputStream in, PrintStream out)
+	public InputStreamSucker(InputStream in, OutputStream out)
 	{
 		m_in = in;
 		m_out = out;
@@ -259,7 +351,7 @@ class InputStreamSucker extends Thread
             int c;
             while ((c = m_in.read()) != -1)
             {
-            	m_out.print((char)c);
+            	m_out.write((char)c);
             }
         }
         catch (IOException e)
