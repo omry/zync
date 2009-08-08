@@ -1,4 +1,7 @@
-== Zync (C) 2009, Omry Yadan : omry@yadan.net ==
+== Zync (C) 2009 ==
+
+Developed by Omry Yadan : omry@yadan.net
+
 Zync is a Java program that combines the power of rsync and zfs snapshots to backup remote servers.
 Configuration is very easy, and once configured, all you need to do is to add it to cron to be executed as often as you would like.
 
