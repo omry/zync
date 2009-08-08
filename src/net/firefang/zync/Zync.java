@@ -13,7 +13,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -39,15 +38,8 @@ public class Zync
 		
 		Swush conf = new Swush(file);
 		
-		
-		snapshot(verbose, conf);
-		if (true)
-		{
-			return;
-		}
-		
-		String rsync = conf.selectProperty("zync.rsync");
-		String options[] = conf.selectFirst("zync.options").asArray();
+		String rsync = conf.selectProperty("zync.rsync.command");
+		String options[] = conf.selectFirst("zync.rsync.options").asArray();
 		String globalDestination = conf.selectProperty("zync.destination");
 		List<Swush> backups = conf.select("zync.backup");
 		if (backups.size() > 0)
@@ -90,6 +82,8 @@ public class Zync
 				
 				rs.execute();
 			}
+			
+			snapshot(verbose, conf);
 		}
 		else
 		{
