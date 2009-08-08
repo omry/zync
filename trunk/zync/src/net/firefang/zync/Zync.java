@@ -11,15 +11,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.sun.org.apache.xml.internal.serializer.ToStream;
-
 import net.firefang.swush.Swush;
 /**
  * @author omry
  * TODO: 
- * zfs snapshots
  * zfs snapshot retention policy
- * rsync excludes 
  */
 public class Zync
 {
@@ -90,7 +86,7 @@ public class Zync
 		}
 	}
 
-	private static void snapshot(boolean verbose, Swush conf)
+	private static void snapshot(boolean verbose, Swush conf) throws IOException, InterruptedException
 	{
 		String zfs = conf.selectProperty("zync.zfs.zfs", "/usr/sbin/zfs");
 		String zfsfs = conf.selectProperty("zync.zfs.backup_file_system");
@@ -106,8 +102,21 @@ public class Zync
 		{
 			System.out.println(toString(c));
 		}
+
+		ProcessBuilder pb = new ProcessBuilder(c);
 		
-		ProcessBuilder pb = new ProcessBuilder();
+        Process process = pb.start();
+        InputStreamSucker stdout = new InputStreamSucker(process.getInputStream(), System.out);
+        InputStreamSucker stderr = new InputStreamSucker(process.getErrorStream(), System.err);
+
+        process.waitFor();
+        stdout.join();
+        stderr.join();
+        
+        int exit = process.exitValue();
+        if (exit != 0)
+        	System.exit(exit);
+		
 	}
 	
 	
