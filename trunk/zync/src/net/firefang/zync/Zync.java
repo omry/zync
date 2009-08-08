@@ -112,20 +112,8 @@ public class Zync
 			System.out.println(toString(c));
 		}
 
-		ProcessBuilder pb = new ProcessBuilder(c);
 		
-        Process process = pb.start();
-        InputStreamSucker stdout = new InputStreamSucker(process.getInputStream(), System.out);
-        InputStreamSucker stderr = new InputStreamSucker(process.getErrorStream(), System.err);
-
-        process.waitFor();
-        stdout.join();
-        stderr.join();
-        
-        int exit = process.exitValue();
-        if (exit != 0)
-        	System.exit(exit);
-		
+		runProcess(c, System.out);
         
         String deleteOlder = conf.selectProperty("zync.zfs.delete_older");
         if (deleteOlder != null)
