@@ -9,7 +9,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.firefang.swush.Swush;
-
+/**
+ * @author omry
+ * TODO: 
+ * zfs snapshots
+ * zfs snapshot retention policy
+ * rsync excludes 
+ */
 public class Zync
 {
 	public static void main(String[] args) throws Exception
@@ -57,8 +63,15 @@ public class Zync
 						for(String s : ar) 
 							dirs.add(s);
 					}
-					
 				}
+				
+				List<String> excludes = new ArrayList<String>();
+				for(Swush exclude : backup.select("backup.exclude"))
+				{
+					excludes.add(exclude.getTextValue());
+				}
+				
+				rs.setExcludes(excludes);
 				rs.copyDirs(dirs);
 				
 				rs.execute();
@@ -77,6 +90,7 @@ class Rsync
 	private final String m_rsync;
 	private String m_host = "";
 	private List<String> m_dirs = new ArrayList<String>();
+	private List<String> m_excludes = new ArrayList<String>();
 	private String m_dest  = "";
 	private String m_options[];
 	private boolean m_verbose;
@@ -107,6 +121,12 @@ class Rsync
 		m_dirs = dirs;
 	}
 	
+	public void setExcludes(List<String> excludes)
+	{
+		m_excludes = excludes;
+	}
+	
+	
 	public void setDest(String dest)
 	{
 		m_dest = dest;
@@ -123,9 +143,16 @@ class Rsync
 		{
 			commands.add (m_host + ":" + dir);
 		}
+		
+		for(String exclude : m_excludes)
+		{
+			commands.add ("--exclude=" + exclude);
+		}
+		
 
 		String dst = replaceWord(m_dest , "${host}", m_host);
 		commands.add(dst);
+		new File(dst).mkdirs();
 		
         ProcessBuilder pb = new ProcessBuilder(commands);
         if (m_verbose)
