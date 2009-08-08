@@ -171,7 +171,7 @@ public class Zync
         Map<String, Long> m = new HashMap<String, Long>(); 
         while ((line = br.readLine()) != null)
         {
-        	int i = line.indexOf(' ');
+        	int i = line.indexOf('\t');
         	String name = line.substring(0, i);
         	String date = line.substring(i + 1);
         	System.err.println(name  + " || " + date);
