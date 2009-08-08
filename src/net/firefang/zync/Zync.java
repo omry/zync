@@ -152,10 +152,13 @@ public class Zync
         	{
         		if (l < olderThen)
         		{
-        			System.out.println("Deleting " + creation.get(l));
+        			c = new ArrayList<String>();
+        			c.add(zfs);
+        			c.add("destroy");
+        			c.add(creation.get(l));
+        			runProcess(c, System.out, verbose);
         		}
         	}
-        	
         }
 	}
 	
@@ -190,7 +193,6 @@ public class Zync
         	String date = line.substring(i + 1);
         	Date d = df.parse(date);
         	m.put(d.getTime(), name);
-        	System.out.println(name + " : " + d);
         }
         
 		return m;
