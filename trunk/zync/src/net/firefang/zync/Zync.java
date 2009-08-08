@@ -40,7 +40,7 @@ public class Zync
 		
 		String rsync = conf.selectProperty("zync.rsync.command");
 		String options[] = conf.selectFirst("zync.rsync.options").asArray();
-		String globalDestination = conf.selectProperty("zync.destination");
+		String globalDestination = conf.selectProperty("zync.rsync.destination");
 		List<Swush> backups = conf.select("zync.backup");
 		if (backups.size() > 0)
 		{
