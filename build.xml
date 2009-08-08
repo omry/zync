@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+     Apr 25, 2009 3:16:02 PM                                                        
+
+     zync    
+     description
+                   
+     omry                                                                
+     ====================================================================== -->
+<project name="zync" default="dist">
+	<property name="version" value="0.90" />
+
+	<!-- ================================= 
+          target: dist              
+         ================================= -->
+	<target name="dist" depends="setup,clean,build" description="description">
+		<copydir dest="${build.dir}/dist/src" src="src"></copydir>
+		<copydir dest="${build.dir}/dist/test-data" src="test-data"></copydir>
+		<copy file="build.xml" todir="${build.dir}/dist"/>
+		<copy file="CHANGELOG" todir="${build.dir}/dist"/>
+		<copy file="LICENSE" todir="${build.dir}/dist"/>
+		<copy file="README" todir="${build.dir}/dist"/>
+		<copy file="sample.conf" todir="${build.dir}/dist"/>
+		
+	    <copy todir="${build.dir}/dist/">
+	        <fileset dir="." excludes="build/**,bin/**">
+	        </fileset>
+	    </copy>
+		
+	    <zip destfile="${build.dir}/zync-${version}.zip">
+	        <zipfileset dir="${build.dir}/dist" prefix="zync"/>
+	    </zip>
+	
+	    <zip destfile="${build.dir}/zync-${version}-src.zip">
+	        <zipfileset dir="src"/>
+	    </zip>
+	
+		<copy file="${build.dir}/dist/zync-${version}.jar" todir="${build.dir}"/>
+		
+	</target>
+
+	<!-- ================================= 
+          target: build              
+         ================================= -->
+	<target name="build" depends="clean,setup" description="description">
+		<javac srcdir="src" destdir="${build.dir}/classes" classpath="lib/swush-0.93.jar" debug="on" />
+
+		<jar jarfile="${build.dir}/dist/zync-${version}.jar">
+			<fileset dir="${build.dir}/classes" />
+			<zipfileset src="lib/swush-0.93.jar">
+			</zipfileset>
+			<manifest>
+				<attribute name="Main-Class" value="net.firefang.zync.Zync" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="clean" depends="setup">
+		<deltree dir="${build.dir}" />
+		<mkdir dir="${build.dir}" />
+		<mkdir dir="${build.dir}/classes" />
+		<mkdir dir="${build.dir}/dist" />
+	</target>
+
+	<target name="setup">
+		<property name="build.dir" value="build" />
+	</target>
+
+</project>
