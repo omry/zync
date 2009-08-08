@@ -5,8 +5,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+
+import com.sun.org.apache.xml.internal.serializer.ToStream;
 
 import net.firefang.swush.Swush;
 /**
@@ -31,10 +36,10 @@ public class Zync
 		
 		Swush conf = new Swush(file);
 		
+		
 		String rsync = conf.selectProperty("zync.rsync");
 		String options[] = conf.selectFirst("zync.options").asArray();
 		String globalDestination = conf.selectProperty("zync.destination");
-		
 		List<Swush> backups = conf.select("zync.backup");
 		if (backups.size() > 0)
 		{
@@ -76,12 +81,51 @@ public class Zync
 				
 				rs.execute();
 			}
+			
+			snapshot(verbose, conf);
 		}
 		else
 		{
 			System.err.println("no backup elements defined in " + file);
 		}
 	}
+
+	private static void snapshot(boolean verbose, Swush conf)
+	{
+		String zfs = conf.selectProperty("zync.zfs.zfs", "/usr/sbin/zfs");
+		String zfsfs = conf.selectProperty("zync.zfs.backup_file_system");
+		DateFormat df = new SimpleDateFormat(conf.selectProperty("zync.zfs.snapshot_name_pattern", "yyyy_MM_dd__kk_mm_ss_zzz"));
+		String timestamp = df.format(new Date());
+		
+		List<String> c = new ArrayList<String>();
+		c.add(zfs);
+		c.add("snapshot");
+		c.add(zfsfs + "@" + timestamp);
+		
+		if (verbose)
+		{
+			System.out.println(toString(c));
+		}
+		
+		ProcessBuilder pb = new ProcessBuilder();
+	}
+	
+	
+	static String toString(List<String> commands)
+	{
+		String cmd = "";
+		for(String c : commands) 
+		{
+			if (cmd.length() == 0)
+			{
+				cmd = c;
+			}
+			else
+				cmd += " " + c;
+		}
+		return cmd;
+	}
+	
 }
 
 
@@ -157,17 +201,7 @@ class Rsync
         ProcessBuilder pb = new ProcessBuilder(commands);
         if (m_verbose)
         {
-        	String cmd = "";
-        	for(String c : commands) 
-        	{
-        		if (cmd.length() == 0)
-        		{
-        			cmd = c;
-        		}
-        		else
-        			cmd += " " + c;
-        	}
-        	System.out.println(cmd);
+        	System.out.println(Zync.toString(commands));
         }
         Process process = pb.start();
         InputStreamSucker stdout = new InputStreamSucker(process.getInputStream(), System.out);
