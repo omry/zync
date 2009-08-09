@@ -42,7 +42,7 @@ public class Zync
 		String options[] = conf.selectFirst("zync.rsync.options").asArray();
 		if (options.length == 0) // no options specify, use default options
 		{
-			options = new String[]{"-a","--force","--delete-excluded","--delete"};
+			options = new String[]{"-a","--force","--delete-excluded","--delete", "--inplace"};
 		}
 		String globalDestination = conf.selectProperty("zync.rsync.destination");
 		List<Swush> backups = conf.select("zync.backup");
