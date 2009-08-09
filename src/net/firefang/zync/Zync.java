@@ -28,7 +28,7 @@ public class Zync
 	public static void main(String[] args) throws Exception
 	{
 		CmdLineParser p = new CmdLineParser();
-		p.addStringOption("file");
+		p.addStringOption('f',"file");
 		p.addBooleanOption('v', "verbose");
 		p.parse(args);
 		
