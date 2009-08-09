@@ -38,8 +38,12 @@ public class Zync
 		
 		Swush conf = new Swush(file);
 		
-		String rsync = conf.selectProperty("zync.rsync.command");
+		String rsync = conf.selectProperty("zync.rsync.command", "/usr/bin/rsync");
 		String options[] = conf.selectFirst("zync.rsync.options").asArray();
+		if (options.length == 0) // no options specify, use default options
+		{
+			options = new String[]{"-a","--force","--delete-excluded","--delete"};
+		}
 		String globalDestination = conf.selectProperty("zync.rsync.destination");
 		List<Swush> backups = conf.select("zync.backup");
 		if (backups.size() > 0)
