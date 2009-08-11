@@ -15,8 +15,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import net.firefang.swush.Swush;
 
@@ -44,8 +46,23 @@ public class Zync
 			options = new String[]{"-a", "--force", "--delete-excluded", "--delete","--inplace"};
 		}
 		
+		Set<Integer> ignoreExitCodes = new HashSet<Integer>();
+		Swush ig = conf.selectFirst("zync.rsync.ignore_exit_codes");
+		if (ig != null)
+		{
+			for(String s : ig.asArray())
+				ignoreExitCodes.add(Integer.parseInt(s));
+		}
+		else
+		{
+			ignoreExitCodes.add(23); // by default, ignore 'file vanished' exit code.
+		}
+		
 		String globalDestination = conf.selectProperty("zync.rsync.destination");
 		List<Swush> backups = conf.select("zync.backup");
+		
+		int failedExitCode = 0;
+		
 		if (backups.size() > 0)
 		{
 			for (Swush backup : backups)
@@ -90,11 +107,19 @@ public class Zync
 
 				rs.setExcludes(excludes);
 				rs.copyDirs(dirs);
+				rs.setIgnoreExitCodes(ignoreExitCodes);
 
-				rs.execute();
+				int exit = rs.execute();
+				if (failedExitCode  == 0 && exit != 0)
+					failedExitCode  = exit;
 			}
 
 			snapshot(verbose, conf);
+			
+			if (failedExitCode  != 0)
+			{
+				System.exit(failedExitCode );
+			}
 		} else
 		{
 			System.err.println("no backup elements defined in " + file);
@@ -223,8 +248,7 @@ public class Zync
 		return cmd;
 	}
 
-	public static void runProcess(List<String> commands, OutputStream out,
-			boolean verbose) throws InterruptedException, IOException
+	public static int runProcess(List<String> commands, OutputStream out, boolean verbose) throws InterruptedException, IOException
 	{
 		if (verbose)
 		{
@@ -241,13 +265,7 @@ public class Zync
 		stdout.join();
 		stderr.join();
 
-		int exit = process.exitValue();
-		if (exit != 0)
-		{
-			System.err.println("Exit code " + exit + " from : "
-					+ toString(commands));
-			System.exit(exit);
-		}
+		return process.exitValue();
 	}
 }
 
@@ -267,9 +285,16 @@ class Rsync
 
 	private boolean m_verbose;
 
+	private Set<Integer> m_ignoreExitCodes;
+
 	public Rsync(String rsync)
 	{
 		m_rsync = rsync;
+	}
+
+	public void setIgnoreExitCodes(Set<Integer> ignoreExitCodes)
+	{
+		m_ignoreExitCodes = ignoreExitCodes;
 	}
 
 	public void setVerbose(boolean verbose)
@@ -303,7 +328,7 @@ class Rsync
 		m_dest = dest;
 	}
 
-	public void execute() throws InterruptedException, IOException
+	public int execute() throws InterruptedException, IOException
 	{
 		List<String> commands = new ArrayList<String>();
 		commands.add(m_rsync);
@@ -325,22 +350,9 @@ class Rsync
 		commands.add(dst);
 		new File(dst).mkdirs();
 
-		ProcessBuilder pb = new ProcessBuilder(commands);
-		if (m_verbose)
-		{
-			System.out.println(Zync.toString(commands));
-		}
-		Process process = pb.start();
-		InputStreamSucker stdout = new InputStreamSucker(process.getInputStream(), System.out);
-		InputStreamSucker stderr = new InputStreamSucker(process.getErrorStream(), System.err);
-
-		process.waitFor();
-		stdout.join();
-		stderr.join();
-
-		int exit = process.exitValue();
-		if (exit != 0)
-			System.exit(exit);
+		int exit = Zync.runProcess(commands, System.out, m_verbose);
+		if (exit == 0 || m_ignoreExitCodes.contains(exit)) return 0;
+		else return exit;
 	}
 
 	static String replaceWord(String original, String find, String replacement)
