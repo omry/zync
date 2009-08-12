@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -118,6 +119,7 @@ public class Zync
 			
 			if (failedExitCode  != 0)
 			{
+				System.err.println("Existing with error code " + failedExitCode);
 				System.exit(failedExitCode );
 			}
 		} else
@@ -140,7 +142,7 @@ public class Zync
 		c.add("snapshot");
 		c.add(zfsfs + "@" + timestamp);
 
-		runProcess(c, System.out, verbose);
+		runProcess(c, System.out, System.err, verbose);
 
 		String deleteOlder = conf
 				.selectProperty("zync.zfs.snapshot.delete_older");
@@ -191,7 +193,7 @@ public class Zync
 					c.add(zfs);
 					c.add("destroy");
 					c.add(creation.get(l));
-					runProcess(c, System.out, verbose);
+					runProcess(c, System.out,System.err, verbose);
 				}
 			}
 		}
@@ -213,7 +215,7 @@ public class Zync
 		c.add(zfsfs);
 
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		runProcess(c, bout, false);
+		runProcess(c, bout, System.err, false);
 
 		BufferedReader br = new BufferedReader(new InputStreamReader(
 				new ByteArrayInputStream(bout.toByteArray())));
@@ -248,22 +250,41 @@ public class Zync
 		return cmd;
 	}
 
-	public static int runProcess(List<String> commands, OutputStream out, boolean verbose) throws InterruptedException, IOException
+	public static int runProcess(List<String> commands, String fout, String ferr, boolean verbose) throws InterruptedException, IOException
+	{
+		FileOutputStream stdout = null;
+		FileOutputStream stderr = null;
+		try
+		{
+			stdout = new FileOutputStream(fout);
+			stderr = new FileOutputStream(ferr);
+			return runProcess(commands, stdout, stderr, verbose);
+			
+		}finally
+		{
+			if (stdout != null) stdout.close();
+			if (stderr != null) stderr.close();
+		}
+	}
+	
+	public static int runProcess(List<String> commands, OutputStream stdout, OutputStream stderr, boolean verbose) throws InterruptedException, IOException
 	{
 		if (verbose)
 		{
-			System.out.println(toString(commands));
+			String s = toString(commands);
+			System.out.println(s);
+			stdout.write(("ZYNC : " + s+ "\n").getBytes());
 		}
 
 		ProcessBuilder pb = new ProcessBuilder(commands);
 
 		Process process = pb.start();
-		InputStreamSucker stdout = new InputStreamSucker(process.getInputStream(), out);
-		InputStreamSucker stderr = new InputStreamSucker(process.getErrorStream(), System.err);
+		InputStreamSucker stdout1 = new InputStreamSucker(process.getInputStream(), stdout);
+		InputStreamSucker stderr1 = new InputStreamSucker(process.getErrorStream(), stderr);
 
 		process.waitFor();
-		stdout.join();
-		stderr.join();
+		stdout1.join();
+		stderr1.join();
 
 		return process.exitValue();
 	}
@@ -349,8 +370,14 @@ class Rsync
 		String dst = replaceWord(m_dest, "${host}", m_host);
 		commands.add(dst);
 		new File(dst).mkdirs();
+		
+		File logsDir = new File(m_dest, "logs");
+		logsDir.mkdirs();
+		
+		File stderr = new File(logsDir, replaceWord("stderr_${host}.log", "${host}", m_host));
+		File stdout = new File(logsDir, replaceWord("stdout_${host}.log", "${host}", m_host));
 
-		int exit = Zync.runProcess(commands, System.out, m_verbose);
+		int exit = Zync.runProcess(commands, stdout.getAbsolutePath(),stderr.getAbsolutePath(), m_verbose);
 		if (exit == 0 || m_ignoreExitCodes.contains(exit)) return 0;
 		else return exit;
 	}
