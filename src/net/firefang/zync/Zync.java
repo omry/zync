@@ -376,6 +376,11 @@ class Rsync
 		
 		File stderr = new File(logsDir, replaceWord("stderr_${host}.log", "${host}", m_host));
 		File stdout = new File(logsDir, replaceWord("stdout_${host}.log", "${host}", m_host));
+		
+		if (m_verbose)
+		{
+			System.err.println("Saving logs to " + logsDir.getAbsolutePath());
+		}
 
 		int exit = Zync.runProcess(commands, stdout.getAbsolutePath(),stderr.getAbsolutePath(), m_verbose);
 		if (exit == 0 || m_ignoreExitCodes.contains(exit)) return 0;
