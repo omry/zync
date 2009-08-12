@@ -60,6 +60,7 @@ public class Zync
 		}
 		
 		String globalDestination = conf.selectProperty("zync.rsync.destination");
+		String globalLogsDir = conf.selectProperty("zync.rsync.logs_dir");
 		List<Swush> backups = conf.select("zync.backup");
 		
 		int failedExitCode = 0;
@@ -71,6 +72,7 @@ public class Zync
 				Rsync rs = new Rsync(rsync);
 				rs.setVerbose(verbose);
 				rs.setDest(backup.selectProperty("backup.destination",globalDestination));
+				rs.setLogsDir(backup.selectProperty("backup.logs_dir",globalLogsDir));
 				Swush optOverride = backup.selectFirst("backup.options");
 				if (optOverride != null)
 				{
@@ -308,9 +310,16 @@ class Rsync
 
 	private Set<Integer> m_ignoreExitCodes;
 
+	private String m_logsDir;
+
 	public Rsync(String rsync)
 	{
 		m_rsync = rsync;
+	}
+
+	public void setLogsDir(String logsDir)
+	{
+		m_logsDir = logsDir;
 	}
 
 	public void setIgnoreExitCodes(Set<Integer> ignoreExitCodes)
@@ -371,7 +380,7 @@ class Rsync
 		commands.add(dst);
 		new File(dst).mkdirs();
 		
-		File logsDir = new File(m_dest, "logs");
+		File logsDir = new File(m_logsDir);
 		logsDir.mkdirs();
 		
 		File stderr = new File(logsDir, replaceWord("stderr_${host}.log", "${host}", m_host));
