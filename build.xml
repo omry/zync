@@ -8,7 +8,7 @@
      omry                                                                
      ====================================================================== -->
 <project name="zync" default="dist">
-	<property name="version" value="0.90" />
+	<property name="version" value="0.91" />
 
 	<!-- ================================= 
           target: dist              
