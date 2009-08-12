@@ -1,4 +1,4 @@
-13/08/2009 : Now runs rsync in multiple threads	
+13/08/2009 : Now runs rsync in multiple threads, improving performance when backing up multiple servers
 13/08/2009 : Now saves stdout and stderr to log files specified as zync.rsync.logs_dir or zync.backup.logs_dir.
 11/08/2009 : Fixed to ignore rsync exit code 23 (file vanished) and to finish operating even if one of the backups failed.
 
