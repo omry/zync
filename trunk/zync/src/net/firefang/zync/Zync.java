@@ -435,6 +435,12 @@ class Rsync
 			e.printStackTrace();
 			return -1;
 		}
+		
+		if (m_verbose)
+		{
+			System.out.println("Rsync exited with error code " + exit);
+		}		
+		
 		if (exit == 0 || m_ignoreExitCodes.contains(exit)) return 0;
 		else return exit;
 	}
