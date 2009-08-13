@@ -64,7 +64,7 @@ public class Zync
 		}
 		else
 		{
-			ignoreExitCodes.add(23); // by default, ignore 'file vanished' exit code.
+			ignoreExitCodes.add(24); // by default, ignore 'file vanished' exit code.
 		}
 		
 		final String globalDestination = conf.selectProperty("zync.rsync.destination");
