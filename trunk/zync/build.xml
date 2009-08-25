@@ -8,7 +8,7 @@
      omry                                                                
      ====================================================================== -->
 <project name="zync" default="dist">
-	<property name="version" value="0.91" />
+	<property name="version" value="0.92" />
 
 	<!-- ================================= 
           target: dist              
@@ -34,7 +34,7 @@
 	        <zipfileset dir="src"/>
 	    </zip>
 	
-		<copy file="${build.dir}/dist/zync-${version}.jar" todir="${build.dir}"/>
+		<copy file="${build.dir}/dist/zync.jar" todir="${build.dir}"/>
 		
 	</target>
 
@@ -51,7 +51,7 @@
 		<replace file="${build.dir}/src/net/firefang/zync/Zync.java" token="@@svn_version@@" value="Zync ${version} (revision ${svn_version}, built at ${now})"/>
 		<javac srcdir="src" destdir="${build.dir}/classes" classpath="lib/swush-0.93.jar" debug="on" />
 
-		<jar jarfile="${build.dir}/dist/zync-${version}.jar">
+		<jar jarfile="${build.dir}/dist/zync.jar">
 			<fileset dir="${build.dir}/classes" />
 			<zipfileset src="lib/swush-0.93.jar">
 			</zipfileset>
