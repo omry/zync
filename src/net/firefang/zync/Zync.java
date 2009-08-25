@@ -254,6 +254,10 @@ public class Zync
 					c = new ArrayList<String>();
 					c.add(zfs);
 					c.add("destroy");
+					if (recursive)
+					{
+						c.add("-r");
+					}
 					c.add(creation.get(l));
 					runProcess(c, System.out,System.err, verbose);
 				}
