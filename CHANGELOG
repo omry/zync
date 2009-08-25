@@ -1,5 +1,7 @@
-25/08/2009 : Added --backup (-b) flag. which defaults to true and indicates if to run rsync backup.
-25/08/2009 : Added --snapshot (-s) flag. it defaults to the value of --backup and indicates if to take a zfs snapshot 
+25/08/2009 : Added --version, outputs version string like "Zync 0.92 (revision 78:79M, built at 08/25/2009 09:47 UTC)"
+25/08/2009 : Added --no-backup flag. which defaults to false and indicates not to run rsync backup.
+25/08/2009 : Added --snapshot (-s) flag. indicates if to take a zfs snapshot, defaults to true. 
+25/08/2009 : Added recursive option to zfs snapshot (zync.zfs.recursive), defaults is false.
 
 14/08/2009 : 0.91 released
 13/08/2009 : Now runs rsync in multiple threads, improving performance when backing up multiple servers
