@@ -1,3 +1,6 @@
+25/08/2009 : Added --backup (-b) flag. which defaults to true and indicates if to run rsync backup.
+25/08/2009 : Added --snapshot (-s) flag. it defaults to the value of --backup and indicates if to take a zfs snapshot 
+
 14/08/2009 : 0.91 released
 13/08/2009 : Now runs rsync in multiple threads, improving performance when backing up multiple servers
 13/08/2009 : Now saves stdout and stderr to log files specified as zync.rsync.logs_dir or zync.backup.logs_dir.
