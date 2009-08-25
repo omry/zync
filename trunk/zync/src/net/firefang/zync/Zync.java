@@ -47,7 +47,9 @@ public class Zync
 		if (version)
 		{
 			System.out.println(VERSION);
+			return;
 		}
+		
 		final boolean doBackup = (Boolean) p.getOptionValue("backup", true);
 		boolean snapshot = (Boolean) p.getOptionValue("snapshot", doBackup);
 		File file = new File((String) p.getOptionValue("file", "backup.conf"));
