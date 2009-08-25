@@ -42,6 +42,13 @@
           target: build              
          ================================= -->
 	<target name="build" depends="clean,setup" description="description">
+		<copydir dest="${build.dir}/src" src="src"></copydir>
+		
+		<tstamp>
+			<format property="now" pattern="MM/dd/yyyy HH:mm zzz"/>
+		</tstamp>
+		<exec logerror="true" executable="svnversion" spawn="false" outputproperty="svn_version"><arg line="."/></exec>
+		<replace file="${build.dir}/src/net/firefang/zync/Zync.java" token="@@svn_version@@" value="Zync ${version} (revision ${svn_version}, built at ${now})"/>
 		<javac srcdir="src" destdir="${build.dir}/classes" classpath="lib/swush-0.93.jar" debug="on" />
 
 		<jar jarfile="${build.dir}/dist/zync-${version}.jar">
