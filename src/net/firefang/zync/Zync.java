@@ -36,132 +36,142 @@ public class Zync
 		CmdLineParser p = new CmdLineParser();
 		p.addStringOption('f', "file");
 		p.addBooleanOption('v', "verbose");
+		p.addBooleanOption('s', "snapshot");
+		p.addBooleanOption('b', "backup");
 		p.parse(args);
 
+		final boolean doBackup = (Boolean) p.getOptionValue("backup", true);
+		boolean snapshot = (Boolean) p.getOptionValue("snapshot", doBackup);
 		File file = new File((String) p.getOptionValue("file", "backup.conf"));
 		final boolean verbose = (Boolean) p.getOptionValue("verbose", false);
 
 		Swush conf = new Swush(file);
-
-		final String rsync = conf.selectProperty("zync.rsync.command","/usr/bin/rsync");
-		String[] globalOptions = conf.selectFirst("zync.rsync.options").asArray();
-		final String options[];
-		if (globalOptions.length == 0) // no options specified, use default options
+		if (doBackup)
 		{
-			options = new String[]{"-a", "--force", "--delete-excluded", "--delete","--inplace"};
-		}
-		else
-		{
-			options = globalOptions;
-		}
-		
-		final Set<Integer> ignoreExitCodes = new HashSet<Integer>();
-		Swush ig = conf.selectFirst("zync.rsync.ignore_exit_codes");
-		if (ig != null)
-		{
-			for(String s : ig.asArray())
-				ignoreExitCodes.add(Integer.parseInt(s));
-		}
-		else
-		{
-			ignoreExitCodes.add(24); // by default, ignore 'file vanished' exit code.
-		}
-		
-		final String globalDestination = conf.selectProperty("zync.rsync.destination");
-		final String globalLogsDir = conf.selectProperty("zync.rsync.logs_dir");
-		List<Swush> backups = conf.select("zync.backup");
-		
-		final Set<Integer> failedExitCode = new HashSet<Integer>();
-		
-		int numThreads = conf.selectIntProperty("zync.rsync.num_concurrent", 10);
-		if (numThreads < 1) throw new IllegalArgumentException("invalid value for zync.rsync.num_concurrent, should be greater than 0");
-		ExecutorService threadPool = Executors.newFixedThreadPool(numThreads);
-		if (backups.size() > 0)
-		{
-			for (final Swush backup : backups)
+			final String rsync = conf.selectProperty("zync.rsync.command","/usr/bin/rsync");
+			String[] globalOptions = conf.selectFirst("zync.rsync.options").asArray();
+			final String options[];
+			if (globalOptions.length == 0) // no options specified, use default options
 			{
-				threadPool.execute(new Runnable()
+				options = new String[]{"-a", "--force", "--delete-excluded", "--delete","--inplace"};
+			}
+			else
+			{
+				options = globalOptions;
+			}
+			
+			final Set<Integer> ignoreExitCodes = new HashSet<Integer>();
+			Swush ig = conf.selectFirst("zync.rsync.ignore_exit_codes");
+			if (ig != null)
+			{
+				for(String s : ig.asArray())
+					ignoreExitCodes.add(Integer.parseInt(s));
+			}
+			else
+			{
+				ignoreExitCodes.add(24); // by default, ignore 'file vanished' exit code.
+			}
+			
+			final String globalDestination = conf.selectProperty("zync.rsync.destination");
+			final String globalLogsDir = conf.selectProperty("zync.rsync.logs_dir");
+			List<Swush> backups = conf.select("zync.backup");
+			
+			final Set<Integer> failedExitCode = new HashSet<Integer>();
+			
+			int numThreads = conf.selectIntProperty("zync.rsync.num_concurrent", 10);
+			if (numThreads < 1) throw new IllegalArgumentException("invalid value for zync.rsync.num_concurrent, should be greater than 0");
+			ExecutorService threadPool = Executors.newFixedThreadPool(numThreads);
+			if (backups.size() > 0)
+			{
+				for (final Swush backup : backups)
 				{
-				
-					@Override
-					public void run()
+					threadPool.execute(new Runnable()
 					{
-						Rsync rs = new Rsync(rsync);
-						rs.setVerbose(verbose);
-						rs.setDest(backup.selectProperty("backup.destination",globalDestination));
-						String logDir = backup.selectProperty("backup.logs_dir",globalLogsDir);
-						if (logDir == null)
+					
+						@Override
+						public void run()
 						{
-							throw new RuntimeException("logs_dir should be defined as a global variable inside zync.rsync.logs_dir or as a backup specific variable in zync.backup.logs_dir");
-						}
-						rs.setLogsDir(logDir);
-						Swush optOverride = backup.selectFirst("backup.options");
-						String[] options1 = options;;
-						if (optOverride != null)
-						{
-							options1 = optOverride.asArray();
-						}
-						rs.setOptions(options1);
-
-						rs.setHost(backup.selectProperty("backup.host"));
-
-						List<String> dirs = new ArrayList<String>();
-						for (Swush dir : backup.select("backup.directory"))
-						{
-							if (dir.isPair())
-								dirs.add(dir.getTextValue());
-							else
+							Rsync rs = new Rsync(rsync);
+							rs.setVerbose(verbose);
+							rs.setDest(backup.selectProperty("backup.destination",globalDestination));
+							String logDir = backup.selectProperty("backup.logs_dir",globalLogsDir);
+							if (logDir == null)
 							{
-								String[] ar = dir.asArray();
-								for (String s : ar)
-									dirs.add(s);
+								throw new RuntimeException("logs_dir should be defined as a global variable inside zync.rsync.logs_dir or as a backup specific variable in zync.backup.logs_dir");
 							}
-						}
-
-						List<String> excludes = new ArrayList<String>();
-						for (Swush exclude : backup.select("backup.exclude"))
-						{
-							if (exclude.isPair())
-								excludes.add(exclude.getTextValue());
-							else
+							rs.setLogsDir(logDir);
+							Swush optOverride = backup.selectFirst("backup.options");
+							String[] options1 = options;;
+							if (optOverride != null)
 							{
-								String[] ar = exclude.asArray();
-								for (String s : ar)
-									excludes.add(s);
+								options1 = optOverride.asArray();
 							}
+							rs.setOptions(options1);
+
+							rs.setHost(backup.selectProperty("backup.host"));
+
+							List<String> dirs = new ArrayList<String>();
+							for (Swush dir : backup.select("backup.directory"))
+							{
+								if (dir.isPair())
+									dirs.add(dir.getTextValue());
+								else
+								{
+									String[] ar = dir.asArray();
+									for (String s : ar)
+										dirs.add(s);
+								}
+							}
+
+							List<String> excludes = new ArrayList<String>();
+							for (Swush exclude : backup.select("backup.exclude"))
+							{
+								if (exclude.isPair())
+									excludes.add(exclude.getTextValue());
+								else
+								{
+									String[] ar = exclude.asArray();
+									for (String s : ar)
+										excludes.add(s);
+								}
+							}
+
+							rs.setExcludes(excludes);
+							rs.copyDirs(dirs);
+							rs.setIgnoreExitCodes(ignoreExitCodes);
+
+							int exit = rs.execute();
+							if (exit != 0)
+								failedExitCode.add(exit);
 						}
+					});
+				}
 
-						rs.setExcludes(excludes);
-						rs.copyDirs(dirs);
-						rs.setIgnoreExitCodes(ignoreExitCodes);
+				// wait for all rsyncs to finish
+		        threadPool.shutdown();
+		        try
+		        {
+		            threadPool.awaitTermination(1000, TimeUnit.DAYS);
+		        } catch (InterruptedException e)
+		        {
+		        }
 
-						int exit = rs.execute();
-						if (exit != 0)
-							failedExitCode.add(exit);
-					}
-				});
-			}
-
-			// wait for all rsyncs to finish
-	        threadPool.shutdown();
-	        try
-	        {
-	            threadPool.awaitTermination(1000, TimeUnit.DAYS);
-	        } catch (InterruptedException e)
-	        {
-	        }
-
-			
-			snapshot(verbose, conf);
-			
-			if (failedExitCode.size() > 0)
+				
+				
+				if (failedExitCode.size() > 0)
+				{
+					System.err.println("One or more rsync exited with an error code : " + failedExitCode);
+					System.exit(1 );
+				}
+			} else
 			{
-				System.err.println("One or more rsync exited with an error code : " + failedExitCode);
-				System.exit(1 );
-			}
-		} else
+				System.err.println("no backup elements defined in " + file);
+			}	
+		}
+
+		if (snapshot)
 		{
-			System.err.println("no backup elements defined in " + file);
+			snapshot(verbose, conf);
 		}
 	}
 
