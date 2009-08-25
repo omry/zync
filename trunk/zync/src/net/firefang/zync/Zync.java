@@ -43,7 +43,7 @@ public class Zync
 		p.addBooleanOption("version");
 		p.parse(args);
 
-		final boolean version = (Boolean) p.getOptionValue("version", true);
+		final boolean version = (Boolean) p.getOptionValue("version", false);
 		if (version)
 		{
 			System.out.println(VERSION);
