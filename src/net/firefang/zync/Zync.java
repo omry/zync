@@ -31,6 +31,8 @@ import net.firefang.swush.Swush;
  */
 public class Zync
 {
+	final static String VERSION = "@@svn_version@@";
+	
 	public static void main(String[] args) throws Exception
 	{
 		CmdLineParser p = new CmdLineParser();
@@ -38,8 +40,14 @@ public class Zync
 		p.addBooleanOption('v', "verbose");
 		p.addBooleanOption('s', "snapshot");
 		p.addBooleanOption('b', "backup");
+		p.addBooleanOption("version");
 		p.parse(args);
 
+		final boolean version = (Boolean) p.getOptionValue("version", true);
+		if (version)
+		{
+			System.out.println(VERSION);
+		}
 		final boolean doBackup = (Boolean) p.getOptionValue("backup", true);
 		boolean snapshot = (Boolean) p.getOptionValue("snapshot", doBackup);
 		File file = new File((String) p.getOptionValue("file", "backup.conf"));
