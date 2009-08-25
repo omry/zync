@@ -51,7 +51,7 @@ public class Zync
 		}
 		
 		final boolean noBackup = (Boolean) p.getOptionValue("no-backup", false);
-		boolean snapshot = (Boolean) p.getOptionValue("snapshot", !noBackup);
+		boolean snapshot = (Boolean) p.getOptionValue("snapshot", true);
 		File file = new File((String) p.getOptionValue("file", "backup.conf"));
 		final boolean verbose = (Boolean) p.getOptionValue("verbose", false);
 
