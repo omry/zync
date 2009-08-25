@@ -39,7 +39,7 @@ public class Zync
 		p.addStringOption('f', "file");
 		p.addBooleanOption('v', "verbose");
 		p.addBooleanOption('s', "snapshot");
-		p.addBooleanOption('b', "backup");
+		p.addBooleanOption("no-backup");
 		p.addBooleanOption("version");
 		p.parse(args);
 
@@ -50,13 +50,13 @@ public class Zync
 			return;
 		}
 		
-		final boolean doBackup = (Boolean) p.getOptionValue("backup", true);
-		boolean snapshot = (Boolean) p.getOptionValue("snapshot", doBackup);
+		final boolean noBackup = (Boolean) p.getOptionValue("no-backup", false);
+		boolean snapshot = (Boolean) p.getOptionValue("snapshot", !noBackup);
 		File file = new File((String) p.getOptionValue("file", "backup.conf"));
 		final boolean verbose = (Boolean) p.getOptionValue("verbose", false);
 
 		Swush conf = new Swush(file);
-		if (doBackup)
+		if (!noBackup)
 		{
 			final String rsync = conf.selectProperty("zync.rsync.command","/usr/bin/rsync");
 			String[] globalOptions = conf.selectFirst("zync.rsync.options").asArray();
