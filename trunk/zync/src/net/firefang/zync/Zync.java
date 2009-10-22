@@ -190,7 +190,7 @@ public class Zync
 	{
 		String zfs = conf.selectProperty("zync.zfs.zfs", "/usr/sbin/zfs");
 		String zfsfs = conf.selectProperty("zync.zfs.backup_file_system");
-		DateFormat df = new SimpleDateFormat(conf.selectProperty("zync.zfs.snapshot.name_pattern", "yyyy_MM_dd__kk_mm_ss_zzz"));
+		DateFormat df = new SimpleDateFormat(conf.selectProperty("zync.zfs.snapshot.name_pattern", "yyyy_MM_dd__HH_mm_ss_zzz"));
 		String timestamp = df.format(new Date());
 		
 		boolean recursive = conf.selectBoolean("zync.zfs.recursive", false);
