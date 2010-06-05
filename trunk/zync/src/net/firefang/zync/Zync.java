@@ -171,7 +171,6 @@ public class Zync
 				if (failedExitCode.size() > 0)
 				{
 					System.err.println("One or more rsync exited with an error code : " + failedExitCode);
-					System.exit(1 );
 				}
 			} else
 			{
